@@ -1,0 +1,95 @@
+Simulated ICS Network Threat Detection Lab
+
+📌 Overview
+
+This project simulates a realistic Industrial Control System (ICS) environment to analyze Modbus TCP traffic, identify legitimate vs. suspicious behavior, and mimic how security tools like firewalls and SIEMs handle OT network threats. Designed and implemented over 2–3 days, the lab offers a hands-on dive into packet-level threat detection for SCADA systems.
+
+🎯 Objectives
+
+Simulate ICS/SCADA devices using Conpot
+Generate legitimate and malicious Modbus traffic
+Use ACL-based IP filtering to mimic firewall behavior
+Capture and analyze traffic with Wireshark
+Build a Python-based detection script to flag suspicious activity
+(Optional) Forward alerts to Splunk for visualization
+
+⚙️ Tools & Technologies
+
+Conpot (ICS honeypot)
+Modpoll (Modbus traffic generator)
+iptables (for ACL simulation)
+Wireshark (packet capture & analysis)
+Python (Scapy + PyShark for detection logic)
+Splunk Cloud (optional SIEM integration)
+
+🧪 Phase 1: ICS Simulation Setup
+
+Set up Conpot container to simulate a Modbus server
+Used modpoll to generate Modbus TCP requests (function code 3)
+Created local IP aliasing (127.0.0.2) to simulate unauthorized devices
+Verified traffic flows using Wireshark
+
+Challenges:
+
+Modpoll failed initially due to incorrect target port
+Conpot default port was 5020, not 502 → resolved by redirecting traffic
+
+📡 Phase 2: Traffic Capture & Labeling
+
+Captured both clean and suspicious Modbus traffic
+Legitimate requests originated from 127.0.0.1
+Suspicious requests originated from 127.0.0.2, blocked via iptables and redirected to honeypot
+Used Wireshark to analyze TCP flags and Modbus function codes
+
+Insights:
+
+Suspicious traffic often resulted in TCP RST
+Clean traffic had full query-response cycles
+🧠 Phase 3: Detection Logic (Python)
+Built a script using Scapy and PyShark to:
+Detect Modbus Function Codes (esp. code 3)
+Flag traffic from unauthorized IPs
+Detect TCP RSTs and connection attempts with no Modbus layer
+
+Key Features:
+
+Legitimate Modbus traffic flagged as [✅ OK]
+Suspicious or blocked traffic flagged as [🚨 ALERT] or [⚠️ BLOCKED]
+
+🔐 Phase 4: ACL Simulation
+
+Used iptables to:
+Allow traffic from 127.0.0.1
+Redirect/block traffic from 127.0.0.2
+Used socat to simulate connection attempts from spoofed IPs
+
+Effect:
+
+Created realistic ACL behavior to enforce Modbus access control
+
+📈 Phase 5: (Optional) SIEM Integration
+
+Created alert JSONs in Python
+Attempted Splunk Cloud forwarding via HEC
+Faced DNS resolution issues due to trial version limitations
+
+Next Steps:
+
+Deploy Splunk Enterprise locally for full integration
+Extend to support Universal Forwarder or syslog
+
+📊 Sample Output from Detection Script
+
+[✅] Legitimate Modbus Request → 127.0.0.1 | Function Code: 3
+[🚨] Suspicious Modbus Request → 127.0.0.2 | Function Code: 3
+[⚠️] Suspicious TCP to Modbus (No Modbus decode) → 127.0.0.2
+
+🔚 Conclusion
+
+This lab simulates how real ICS environments handle Modbus-based threats. It reflects:
+Network segmentation via ACL
+Anomaly detection via packet analysis
+Actionable threat intel using lightweight Python scripting
+
+Whether for SOC workflows, red team exercises, or OT/IT bridging — this lab showcases how ICS security can be simulated and studied entirely offline.
+
